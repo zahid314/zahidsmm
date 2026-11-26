@@ -14,7 +14,8 @@
 - **Services** — Dil API (`https://dilsmmpanel.com/api/v2`) se live sync hoti hain (Admin > Services > Sync). Agar `DIL_API_KEY` set nahi hai to list khali rahegi.
 - **New Order** — order Dil provider ko jata hai, balance se charge kat-ta hai.
 - **Pricing** — Dil USD rate + **25% margin**, phir USD→PKR **1 USD = Rs 276.43**. Currencies: **PKR (default), USD, INR (1 USD = ₹92.15), SAR (1 USD = SR 3.75)** — switchable, rates Admin Settings mein change ho sakti hain.
-- **Wallet — JazzCash PIN flow (simulated):** amount + JazzCash mobile likhein, PIN aayega, PIN daal ke confirm karein, balance add ho jayega. ⚠️ Ye demo PIN flow hai — asli JazzCash merchant SMS ke liye JazzCash merchant API credentials Render env mein lagani hongi.
+- **Wallet — JazzCash MWALLET debit (real):** amount + apna JazzCash mobile likhein, PIN option SIM / JazzCash app par aayegi, MPIN likh ke Confirm karein — JazzCash wallet se paise kat kar owner ke merchant account mein jayenge, phir Status Inquiry ke baad balance khud add ho jayega. Merchant credentials (Merchant ID / Password / Integrity Salt) Admin > Settings mein daalein — poori guide: **[README-JAZZCASH.md](README-JAZZCASH.md)**. Agar merchant credentials nahi dale to Wallet **DEMO** mode mein rehta hai (demo PIN, asli paise nahi).
+- **Admin manual balance add:** Admin → Registered Users mein kisi user ke saamne Rs amount likh ke **Balance Add Karein** — agar customer ne JazzCash app se seedha paise bheje hon to owner aise balance add kar sakta hai.
 - **Support tickets + Auto Bot:** naya ticket aate hi bot foran jawab deta hai — pehli line: **"Aapka issue owner ke samne kar diya gaya hai."** phir topic ke mutabiq madad. Admin jawab de to bot band ho jata hai (takeover). Bot Admin Settings mein ON/OFF ho sakta hai.
 - **Admin (sirf Owner):** Overview (users, orders, revenue, profit, Dil balance), Registered Users, Password Reset Requests, Payments, Dil API Settings, JazzCash Settings, WhatsApp Channel Link.
 - **WhatsApp Channel:** https://whatsapp.com/channel/0029VbEUyRXLY6dBG6K9jo0F — har page par upar button, Admin Settings mein link change ho sakta hai.
@@ -88,5 +89,5 @@ npm start              # http://localhost:10000
 - Passwords `bcrypt` se hash hote hain, plain mein kabhi save nahi hote.
 - Admin check server-side hota hai (JWT mein `is_admin`), sirf frontend chhupana kaafi nahi.
 - API keys / passwords / connection strings kabhi code mein hardcode nahi hain — sirf env vars se aate hain.
-- JazzCash PIN flow is version mein **simulated** hai; asli live JazzCash merchant integration ke liye merchant credentials aur JazzCash API lagani hogi.
+- JazzCash: asli MWALLET debit flow hai (README-JAZZCASH.md dekhein). Merchant credentials nahi hon to Wallet **demo** mode mein rehta hai. Customer ka MPIN sirf us aik JazzCash call mein use hota hai — save ya log nahi hota. Merchant Password / Salt kabhi frontend ko poore nahi bheje jate, sirf "set hai / nahi hai" dikhta hai.
 - Forgot Password **owner-mediated** hai (email service nahi hai); asli emailed reset code ke liye email service (jaise Resend/SendGrid) aur Google OAuth chahiye.
