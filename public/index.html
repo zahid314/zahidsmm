@@ -101,14 +101,17 @@
     <div id="page-wallet" class="page hidden">
       <div class="card">
         <h3>JazzCash se Funds Add Karein</h3>
+        <p id="jazzcashStatus" class="note"></p>
         <p>Balance: <b id="walletBal">Rs 0</b></p>
         <input id="addAmt" type="number" placeholder="Amount (Rs) — kam az kam 10">
         <input id="addMobile" placeholder="JazzCash Mobile (03xx-xxxxxxx)">
+        <input id="addCnic" placeholder="CNIC ke aakhri 6 digits (optional)">
         <button id="addReqBtn" class="btn primary">PIN Bhejein</button>
         <div id="pinBox" class="hidden">
           <p id="pinInfo"></p>
-          <input id="pinInput" placeholder="4-digit PIN">
+          <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="Apna JazzCash MPIN (4 digits)">
           <button id="pinConfirmBtn" class="btn primary">Confirm — Funds Add Karein</button>
+          <p class="note">MPIN sirf JazzCash ko payment ke liye bheja jata hai — ye save nahi hota. Demo mode mein screen par dikhaya gaya demo PIN likhein.</p>
         </div>
       </div>
     </div>
@@ -135,6 +138,13 @@
         <label>USD → SAR <input id="setSar" type="number" step="0.01"></label>
         <label>WhatsApp Channel Link <input id="setWa"></label>
         <label>Support Bot <select id="setBot"><option value="true">ON</option><option value="false">OFF</option></select></label>
+        <h4>JazzCash Merchant (asli payment ke liye)</h4>
+        <p id="setJcStatus" class="note"></p>
+        <label>Merchant ID <input id="setJcId" placeholder="JazzCash Merchant ID"></label>
+        <label>Merchant Password <input id="setJcPass" type="password" placeholder="Set hai to khali chhorein"></label>
+        <label>Integrity Salt <input id="setJcSalt" type="password" placeholder="Set hai to khali chhorein"></label>
+        <label>Environment <select id="setJcEnv"><option value="sandbox">Sandbox (test)</option><option value="production">Production (asli paise)</option></select></label>
+        <p class="note">Ye details sirf yahan daalein — chat mein kabhi mat bhejein. Pehle Sandbox par test karein, phir Production par jayein. Khali field ka matlab hai purani saved value waisi hi rahegi.</p>
         <button id="saveSettingsBtn" class="btn primary">Settings Save Karein</button>
         <p class="note">Dil API Key Render &gt; Environment mein DIL_API_KEY ke naam se set hoti hai — yahan nahi.</p>
       </div>

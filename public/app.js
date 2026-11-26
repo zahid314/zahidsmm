@@ -5,6 +5,8 @@ let rates = { usd_pkr: 276.43, usd_inr: 92.15, usd_sar: 3.75, margin_pct: 25 };
 let whatsapp = 'https://whatsapp.com/channel/0029VbEUyRXLY6dBG6K9jo0F';
 let services = [];
 let currency = localStorage.getItem('zh_cur') || 'PKR';
+let jazzcashLive = false;
+let jazzcashEnv = 'sandbox';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -25,10 +27,17 @@ function fmt(pkr) {
 function showMsg(el, t) { if (el) el.textContent = t; }
 
 async function loadPublic() {
-  try { const d = await api('/api/settings-public'); rates = d; whatsapp = d.whatsapp_link || whatsapp; } catch {}
+  try {
+    const d = await api('/api/settings-public'); rates = d; whatsapp = d.whatsapp_link || whatsapp;
+    jazzcashLive = !!d.jazzcash_connected; jazzcashEnv = d.jazzcash_env || 'sandbox';
+  } catch {}
   document.querySelectorAll('.wa-btn,.wa-card').forEach(a => a.href = whatsapp);
   $('waBtn').href = whatsapp;
   $('currencySel').value = currency;
+  const st = $('jazzcashStatus');
+  if (st) st.textContent = jazzcashLive
+    ? `JazzCash LIVE hai (${jazzcashEnv === 'production' ? 'Production — asli paise' : 'Sandbox — test mode'}): amount + apna JazzCash mobile likhein, phir MPIN se payment hogi aur paise merchant account mein aate hi balance khud add ho jayega.`
+    : 'JazzCash DEMO mode hai — merchant abhi connect nahi hai. PIN wala flow demo hai, is se asli paise nahi aayenge. Owner Admin > Settings mein JazzCash Merchant ID / Password / Salt daalein.';
 }
 
 function showApp() {
@@ -107,13 +116,26 @@ async function loadAdmin() {
     const rr = await api('/api/admin/reset-requests');
     $('resetList').innerHTML = rr.requests.map(r => `<div class="usr">${esc(r.name)} (${esc(r.username)} — ${esc(r.email)}) <button class="btn small" onclick="resetPw(${r.user_id})">Reset Password</button></div>`).join('') || '<p>Koi pending request nahi.</p>';
     const u = await api('/api/admin/users');
-    $('userList').innerHTML = u.users.map(x => `<div class="usr">${esc(x.name)} (${esc(x.username)}) — ${esc(x.email)} — Balance ${fmt(x.balance_pkr)} ${x.is_admin ? '— ADMIN' : ''} <button class="btn small" onclick="resetPw(${x.id})">Reset Password</button></div>`).join('');
+    $('userList').innerHTML = u.users.map(x => `<div class="usr">${esc(x.name)} (${esc(x.username)}) — ${esc(x.email)} — Balance ${fmt(x.balance_pkr)} ${x.is_admin ? '— ADMIN' : ''} <button class="btn small" onclick="resetPw(${x.id})">Reset Password</button><br><input id="balAmt-${x.id}" type="number" min="1" placeholder="Rs amount" style="width:130px"> <button class="btn small" onclick="addBalance(${x.id})">Balance Add Karein</button></div>`).join('');
     const s = await api('/api/admin/settings');
     $('setMargin').value = s.settings.margin_pct; $('setPkr').value = s.settings.usd_pkr;
     $('setInr').value = s.settings.usd_inr; $('setSar').value = s.settings.usd_sar;
     $('setWa').value = s.settings.whatsapp_link; $('setBot').value = s.settings.support_bot_enabled;
+    // JazzCash credentials are NEVER returned by the server — only set/not-set
+    // flags. Inputs stay blank; a blank field keeps the saved value.
+    $('setJcEnv').value = s.settings.jazzcash_env || 'sandbox';
+    $('setJcStatus').textContent = s.settings.jazzcash_connected
+      ? `JazzCash CONNECTED hai (${s.settings.jazzcash_env || 'sandbox'}). Merchant ID: ${s.settings.jazzcash_merchant_id_set ? 'set hai' : 'nahi hai'} | Password: ${s.settings.jazzcash_password_set ? 'set hai' : 'nahi hai'} | Salt: ${s.settings.jazzcash_salt_set ? 'set hai' : 'nahi hai'}.`
+      : 'JazzCash abhi connect NAHI hai — Merchant ID, Password aur Salt teeno daalein, phir Save karein.';
   } catch (e) { showMsg($('appMsg'), e.message); }
 }
+window.addBalance = async function (uid) {
+  const amt = Number(($('balAmt-' + uid) || {}).value);
+  if (!amt || amt <= 0) { alert('Pehle Rs amount likhein.'); return; }
+  const note = prompt('Note (optional) — jaise JazzCash TID / screenshot ka reference:') || '';
+  try { const d = await api('/api/admin/users/' + uid + '/add-balance', { method: 'POST', body: JSON.stringify({ amount: amt, note }) }); alert(d.message); loadAdmin(); }
+  catch (e) { alert(e.message); }
+};
 window.resetPw = async function (uid) {
   const np = prompt('Naya password likhein (user ko ye bata dein):');
   if (!np) return;
@@ -157,23 +179,35 @@ $('ordBtn').onclick = async () => {
   catch (e) { alert(e.message); }
 };
 let payId = null;
+let payMode = 'demo';
 $('addReqBtn').onclick = async () => {
   try {
-    const d = await api('/api/wallet/add-request', { method: 'POST', body: JSON.stringify({ amount: Number($('addAmt').value), mobile: $('addMobile').value }) });
-    payId = d.payment_id; $('pinBox').classList.remove('hidden');
+    const d = await api('/api/wallet/add-request', { method: 'POST', body: JSON.stringify({ amount: Number($('addAmt').value), mobile: $('addMobile').value, cnic: $('addCnic').value || '' }) });
+    payId = d.payment_id; payMode = d.mode || 'demo'; $('pinBox').classList.remove('hidden');
+    $('pinInput').value = '';
+    $('pinInput').placeholder = payMode === 'live' ? 'Apna JazzCash MPIN (4 digits)' : 'Demo PIN (screen par dikhaya gaya)';
     $('pinInfo').textContent = d.message + (d.demo_pin ? ` Demo PIN: ${d.demo_pin}` : '');
   } catch (e) { alert(e.message); }
 };
 $('pinConfirmBtn').onclick = async () => {
-  try { const d = await api('/api/wallet/add-confirm', { method: 'POST', body: JSON.stringify({ payment_id: payId, pin: $('pinInput').value }) }); alert(d.message); $('pinBox').classList.add('hidden'); loadDashboard(); }
-  catch (e) { alert(e.message); }
+  try { const d = await api('/api/wallet/add-confirm', { method: 'POST', body: JSON.stringify({ payment_id: payId, pin: $('pinInput').value }) }); alert(d.message); $('pinInput').value = ''; $('pinBox').classList.add('hidden'); loadDashboard(); }
+  catch (e) { $('pinInput').value = ''; alert(e.message); }
 };
 $('tkBtn').onclick = async () => {
   try { await api('/api/tickets', { method: 'POST', body: JSON.stringify({ subject: $('tkSubject').value, message: $('tkMsg').value }) }); alert('Ticket bhej diya — bot ne foran jawab diya hai, ticket khol ke dekhein.'); loadTickets(); }
   catch (e) { alert(e.message); }
 };
 $('saveSettingsBtn').onclick = async () => {
-  try { await api('/api/admin/settings', { method: 'POST', body: JSON.stringify({ margin_pct: $('setMargin').value, usd_pkr: $('setPkr').value, usd_inr: $('setInr').value, usd_sar: $('setSar').value, whatsapp_link: $('setWa').value, support_bot_enabled: $('setBot').value }) }); alert('Settings save ho gayi!'); loadPublic(); } catch (e) { alert(e.message); }
+  try {
+    const body = { margin_pct: $('setMargin').value, usd_pkr: $('setPkr').value, usd_inr: $('setInr').value, usd_sar: $('setSar').value, whatsapp_link: $('setWa').value, support_bot_enabled: $('setBot').value, jazzcash_env: $('setJcEnv').value };
+    // JazzCash credentials: send only non-empty fields — blank keeps the saved value.
+    if ($('setJcId').value.trim()) body.jazzcash_merchant_id = $('setJcId').value.trim();
+    if ($('setJcPass').value) body.jazzcash_password = $('setJcPass').value;
+    if ($('setJcSalt').value) body.jazzcash_salt = $('setJcSalt').value;
+    await api('/api/admin/settings', { method: 'POST', body: JSON.stringify(body) });
+    $('setJcPass').value = ''; $('setJcSalt').value = '';
+    alert('Settings save ho gayi!'); loadPublic(); loadAdmin();
+  } catch (e) { alert(e.message); }
 };
 
 // ---- boot ----
