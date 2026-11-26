@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZAHIDSMM — SMM Panel</title>
+<meta name="description" content="ZAHIDSMM — Pakistan SMM Panel: Instagram, TikTok, Facebook, YouTube services. Cheap rates in PKR.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">ZAHID<span>SMM</span></div>
+  <div class="top-actions">
+    <a id="waBtn" class="wa-btn" href="https://whatsapp.com/channel/0029VbEUyRXLY6dBG6K9jo0F" target="_blank" rel="noopener">📱 WhatsApp Channel</a>
+    <select id="currencySel" title="Currency">
+      <option value="PKR">PKR (Rs)</option>
+      <option value="USD">USD ($)</option>
+      <option value="INR">INR (₹)</option>
+      <option value="SAR">SAR (SR)</option>
+    </select>
+    <button id="logoutBtn" class="btn small hidden">Logout</button>
+  </div>
+</header>
+
+<main>
+  <!-- Auth screen: shown first, before login -->
+  <section id="authScreen" class="card auth-card">
+    <div class="logo big">ZAHID<span>SMM</span></div>
+    <p class="tagline">Pakistan SMM Panel — Instagram • TikTok • Facebook • YouTube</p>
+    <div class="tabs">
+      <button id="tabLogin" class="tab active">Login</button>
+      <button id="tabSignup" class="tab">Signup</button>
+    </div>
+    <form id="loginForm">
+      <input id="loginId" placeholder="Username ya Gmail" required>
+      <input id="loginPass" type="password" placeholder="Password" required>
+      <button class="btn primary full" type="submit">Login</button>
+      <a href="#" id="forgotLink">Forgot Password?</a>
+    </form>
+    <form id="signupForm" class="hidden">
+      <input id="suName" placeholder="Full Name" required>
+      <input id="suUser" placeholder="Username" required>
+      <input id="suEmail" type="email" placeholder="Gmail" required>
+      <input id="suPass" type="password" placeholder="Password (6+ harf)" required>
+      <button class="btn primary full" type="submit">Signup</button>
+      <p class="note">Pehla Signup account Owner/Admin banta hai.</p>
+    </form>
+    <button id="gmailBtn" class="btn gmail full">📧 Continue with Gmail</button>
+    <p class="note">Gmail button se Gmail/name fill ho jata hai — login ke liye panel password phir bhi zaroori hai.</p>
+    <div id="forgotBox" class="hidden">
+      <input id="forgotId" placeholder="Username ya Gmail">
+      <button id="forgotBtn" class="btn full">Reset Request Bhejein</button>
+      <p class="note">Request Admin ko jayegi — Admin naya password set karke aap ko bata dega.</p>
+    </div>
+    <p id="authMsg" class="msg"></p>
+    <a class="wa-card" href="https://whatsapp.com/channel/0029VbEUyRXLY6dBG6K9jo0F" target="_blank" rel="noopener">📱 WhatsApp Channel Join Karein</a>
+  </section>
+
+  <!-- App: shown after login -->
+  <section id="appScreen" class="hidden">
+    <nav class="nav">
+      <button data-page="dashboard" class="nav-btn active">Dashboard</button>
+      <button data-page="services" class="nav-btn">Services</button>
+      <button data-page="neworder" class="nav-btn">New Order</button>
+      <button data-page="orders" class="nav-btn">Orders</button>
+      <button data-page="wallet" class="nav-btn">Wallet</button>
+      <button data-page="support" class="nav-btn">Support</button>
+      <button data-page="admin" class="nav-btn hidden" id="adminNav">Admin</button>
+    </nav>
+    <p id="hello"></p>
+    <p id="appMsg" class="msg"></p>
+
+    <div id="page-dashboard" class="page">
+      <div class="stats">
+        <div class="stat"><b id="bal">Rs 0</b><span>Wallet Balance</span></div>
+        <div class="stat"><b id="ordCount">0</b><span>Total Orders</span></div>
+        <div class="stat"><b id="svcCount">0</b><span>Services</span></div>
+      </div>
+      <a class="wa-card" href="https://whatsapp.com/channel/0029VbEUyRXLY6dBG6K9jo0F" target="_blank" rel="noopener">📱 WhatsApp Channel Join Karein — updates aur offers ke liye</a>
+    </div>
+
+    <div id="page-services" class="page hidden">
+      <input id="svcSearch" placeholder="Service search karein...">
+      <button id="syncBtn" class="btn small hidden">🔄 Dil se Sync Karein (Admin)</button>
+      <div id="svcList"></div>
+    </div>
+
+    <div id="page-neworder" class="page hidden">
+      <div class="card">
+        <h3>New Order</h3>
+        <select id="ordService"></select>
+        <input id="ordLink" placeholder="Link (post/profile/video URL)">
+        <input id="ordQty" type="number" placeholder="Quantity" min="1">
+        <p id="ordPrice"></p>
+        <button id="ordBtn" class="btn primary">Order Lagayein</button>
+      </div>
+    </div>
+
+    <div id="page-orders" class="page hidden"><div id="ordersList"></div></div>
+
+    <div id="page-wallet" class="page hidden">
+      <div class="card">
+        <h3>JazzCash se Funds Add Karein</h3>
+        <p>Balance: <b id="walletBal">Rs 0</b></p>
+        <input id="addAmt" type="number" placeholder="Amount (Rs) — kam az kam 10">
+        <input id="addMobile" placeholder="JazzCash Mobile (03xx-xxxxxxx)">
+        <button id="addReqBtn" class="btn primary">PIN Bhejein</button>
+        <div id="pinBox" class="hidden">
+          <p id="pinInfo"></p>
+          <input id="pinInput" placeholder="4-digit PIN">
+          <button id="pinConfirmBtn" class="btn primary">Confirm — Funds Add Karein</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-support" class="page hidden">
+      <div class="card">
+        <h3>Support Ticket</h3>
+        <input id="tkSubject" placeholder="Subject">
+        <textarea id="tkMsg" placeholder="Apna issue likhein..."></textarea>
+        <button id="tkBtn" class="btn primary">Ticket Bhejein</button>
+      </div>
+      <div id="ticketList"></div>
+      <div id="ticketDetail" class="card hidden"></div>
+    </div>
+
+    <div id="page-admin" class="page hidden">
+      <div class="card"><h3>Admin Overview</h3><div id="adminStats"></div></div>
+      <div class="card"><h3>Password Reset Requests</h3><div id="resetList"></div></div>
+      <div class="card"><h3>Registered Users</h3><div id="userList"></div></div>
+      <div class="card"><h3>Settings</h3>
+        <label>Margin % <input id="setMargin" type="number"></label>
+        <label>USD → PKR <input id="setPkr" type="number" step="0.01"></label>
+        <label>USD → INR <input id="setInr" type="number" step="0.01"></label>
+        <label>USD → SAR <input id="setSar" type="number" step="0.01"></label>
+        <label>WhatsApp Channel Link <input id="setWa"></label>
+        <label>Support Bot <select id="setBot"><option value="true">ON</option><option value="false">OFF</option></select></label>
+        <button id="saveSettingsBtn" class="btn primary">Settings Save Karein</button>
+        <p class="note">Dil API Key Render &gt; Environment mein DIL_API_KEY ke naam se set hoti hai — yahan nahi.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
